@@ -13,7 +13,7 @@ class AppTestCase(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
-        self.app = create_app({"TESTING": True, "DATABASE": str(root / "test.db"), "UPLOAD_FOLDER": str(root / "uploads"), "SECRET_KEY": "test", "DEEPSEEK_API_KEY": ""})
+        self.app = create_app({"TESTING": True, "DATABASE": str(root / "test.db"), "UPLOAD_FOLDER": str(root / "uploads"), "SECRET_KEY": "test", "DEEPSEEK_API_KEY": "", "PUBLIC_DEMO_MODE": False})
         self.client = self.app.test_client()
 
     def tearDown(self):
@@ -50,6 +50,29 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Панель достижений".encode(), response.data)
         self.assertIn("admin".encode(), response.data)
+
+    def test_public_demo_only_exposes_demo_records(self):
+        self.app.config["PUBLIC_DEMO_MODE"] = True
+        with self.app.app_context():
+            db = self.app.get_db()
+            db.execute("UPDATE achievements SET child_name='Закрытая запись',is_demo=0 WHERE id=1")
+            db.commit()
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Публичный демо-режим".encode(), response.data)
+        self.assertNotIn("Закрытая запись".encode(), response.data)
+        for path in ("/achievements", "/children", "/mentors"):
+            with self.subTest(path=path):
+                public_page = self.client.get(path)
+                self.assertEqual(public_page.status_code, 200)
+                self.assertNotIn("Закрытая запись".encode(), public_page.data)
+        self.assertEqual(self.client.get("/achievements/1").status_code, 404)
+        self.assertEqual(self.client.get("/opportunities").status_code, 302)
+        self.assertEqual(self.client.get("/exports/children.xlsx").status_code, 302)
+        self.login()
+        response = self.client.get("/achievements/1")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Закрытая запись".encode(), response.data)
 
     def test_scoring_creation_and_aggregation(self):
         self.login()

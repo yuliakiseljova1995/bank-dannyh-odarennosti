@@ -14,3 +14,5 @@ services:
         value: /tmp/achievements.db
       - key: UPLOAD_FOLDER
         value: /tmp/uploads
+      - key: PUBLIC_DEMO_MODE
+        value: true

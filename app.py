@@ -53,6 +53,7 @@ def create_app(test_config=None):
         DEEPSEEK_API_KEY=environment_setting("DEEPSEEK_API_KEY"),
         DEEPSEEK_API_URL=environment_setting("DEEPSEEK_API_URL", "https://api.deepseek.com"),
         DEEPSEEK_MODEL=environment_setting("DEEPSEEK_MODEL", "deepseek-flash"),
+        PUBLIC_DEMO_MODE=os.environ.get("PUBLIC_DEMO_MODE", "true").lower() in {"1", "true", "yes", "on"},
     )
     if test_config:
         app.config.update(test_config)
@@ -172,6 +173,17 @@ def create_app(test_config=None):
             return view(*args, **kwargs)
         return wrapped
 
+    def public_demo_access():
+        return app.config["PUBLIC_DEMO_MODE"] and not g.user
+
+    def demo_or_login_required(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if not g.user and not public_demo_access():
+                return redirect(url_for("login", next=request.path))
+            return view(*args, **kwargs)
+        return wrapped
+
     def roles_required(*roles):
         def deco(view):
             @wraps(view)
@@ -239,7 +251,8 @@ def create_app(test_config=None):
     def template_data():
         return dict(LEVELS=LEVELS, RESULTS=RESULTS, DIRECTIONS=DIRECTIONS, ROLES=ROLES,
                     EVENT_TYPES=EVENT_TYPES, FORMATS=FORMATS,
-                    csrf_token=session.get("csrf_token"), score=score, social_text=social_text)
+                    csrf_token=session.get("csrf_token"), score=score, social_text=social_text,
+                    public_demo=public_demo_access())
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
@@ -349,7 +362,7 @@ def create_app(test_config=None):
         return redirect(url_for("cabinet") + "#invitations")
 
     def filters_sql():
-        clauses, params = [], []
+        clauses, params = (["is_demo=1"] if public_demo_access() else []), []
         for field in ("school", "direction", "level"):
             value = request.args.get(field, "").strip()
             if value:
@@ -405,7 +418,7 @@ def create_app(test_config=None):
         return suggest_direction(contest_name), "rules"
 
     @app.route("/")
-    @login_required
+    @demo_or_login_required
     def dashboard():
         db = get_db(); where, params = filters_sql()
         rows = db.execute("SELECT * FROM achievements" + where + " ORDER BY event_date DESC", params).fetchall()
@@ -421,7 +434,7 @@ def create_app(test_config=None):
                                total_score=sum(score(r["level"], r["result"]) for r in rows))
 
     @app.get("/achievements")
-    @login_required
+    @demo_or_login_required
     def achievements():
         where, params = filters_sql()
         rows = get_db().execute("SELECT * FROM achievements" + where + " ORDER BY event_date DESC, id DESC", params).fetchall()
@@ -492,11 +505,16 @@ def create_app(test_config=None):
         return render_template("achievement_form.html", item=None)
 
     @app.get("/achievements/<int:achievement_id>")
-    @login_required
+    @demo_or_login_required
     def achievement_detail(achievement_id):
-        item = get_db().execute("SELECT * FROM achievements WHERE id=?", (achievement_id,)).fetchone()
+        query = "SELECT * FROM achievements WHERE id=?"
+        if public_demo_access():
+            query += " AND is_demo=1"
+        item = get_db().execute(query, (achievement_id,)).fetchone()
         if not item: abort(404)
-        files = get_db().execute("SELECT * FROM attachments WHERE achievement_id=? ORDER BY id", (achievement_id,)).fetchall()
+        files = [] if public_demo_access() else get_db().execute(
+            "SELECT * FROM attachments WHERE achievement_id=? ORDER BY id", (achievement_id,)
+        ).fetchall()
         return render_template("achievement_detail.html", item=item, files=files)
 
     @app.route("/achievements/<int:achievement_id>/edit", methods=["GET", "POST"])
@@ -575,28 +593,34 @@ def create_app(test_config=None):
         return jsonify(text=text)
 
     @app.get("/children")
-    @login_required
+    @demo_or_login_required
     def children():
-        rows = registry_rows(get_db(), "child")
+        rows = registry_rows(get_db(), "child", public_demo_access())
         return render_template("registry.html", title="Реестр детей", kind="child", rows=rows)
 
     @app.get("/children/<path:name>")
-    @login_required
+    @demo_or_login_required
     def child_detail(name):
-        rows = get_db().execute("SELECT * FROM achievements WHERE child_name=? ORDER BY event_date DESC", (name,)).fetchall()
+        query = "SELECT * FROM achievements WHERE child_name=?"
+        if public_demo_access():
+            query += " AND is_demo=1"
+        rows = get_db().execute(query + " ORDER BY event_date DESC", (name,)).fetchall()
         if not rows: abort(404)
         return render_template("person_detail.html", title=name, rows=rows, kind="child")
 
     @app.get("/mentors")
-    @login_required
+    @demo_or_login_required
     def mentors():
-        rows = registry_rows(get_db(), "mentor")
+        rows = registry_rows(get_db(), "mentor", public_demo_access())
         return render_template("registry.html", title="Реестр педагогов", kind="mentor", rows=rows)
 
     @app.get("/mentors/<path:name>")
-    @login_required
+    @demo_or_login_required
     def mentor_detail(name):
-        rows = get_db().execute("SELECT * FROM achievements WHERE mentor_name=? ORDER BY event_date DESC", (name,)).fetchall()
+        query = "SELECT * FROM achievements WHERE mentor_name=?"
+        if public_demo_access():
+            query += " AND is_demo=1"
+        rows = get_db().execute(query + " ORDER BY event_date DESC", (name,)).fetchall()
         if not rows: abort(404)
         return render_template("person_detail.html", title=name, rows=rows, kind="mentor")
 
@@ -868,8 +892,11 @@ def social_text(row):
             f"Желаем новых успехов и ярких побед!")
 
 
-def registry_rows(db, kind):
-    rows = db.execute("SELECT * FROM achievements ORDER BY event_date DESC").fetchall(); grouped = {}
+def registry_rows(db, kind, demo_only=False):
+    query = "SELECT * FROM achievements"
+    if demo_only:
+        query += " WHERE is_demo=1"
+    rows = db.execute(query + " ORDER BY event_date DESC").fetchall(); grouped = {}
     for row in rows:
         name = row["child_name"] if kind == "child" else row["mentor_name"]
         subtitle = f"{row['school']}, {row['class_name']}" if kind == "child" else row["mentor_position"]
