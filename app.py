@@ -254,6 +254,18 @@ def create_app(test_config=None):
                     csrf_token=session.get("csrf_token"), score=score, social_text=social_text,
                     public_demo=public_demo_access())
 
+    @app.get("/")
+    def landing():
+        if g.user:
+            return redirect(url_for("dashboard"))
+        if g.child:
+            return redirect(url_for("cabinet"))
+        return render_template("landing.html")
+
+    @app.get("/demo")
+    def demo():
+        return redirect(url_for("dashboard"))
+
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if g.user:
@@ -417,7 +429,7 @@ def create_app(test_config=None):
             pass
         return suggest_direction(contest_name), "rules"
 
-    @app.route("/")
+    @app.get("/dashboard")
     @demo_or_login_required
     def dashboard():
         db = get_db(); where, params = filters_sql()
@@ -429,9 +441,17 @@ def create_app(test_config=None):
             by_direction[row["direction"]] = by_direction.get(row["direction"], 0) + 1
             profile = school_profiles.setdefault(row["school"], {key: 0 for key in DIRECTIONS})
             profile[row["direction"]] += 1
+        chart_data = {
+            "schools": [{"label": name, "value": value} for name, value in sorted(
+                by_school.items(), key=lambda item: item[1], reverse=True
+            )],
+            "directions": [{"label": DIRECTIONS[key], "value": value, "key": key}
+                           for key, value in by_direction.items()],
+        }
         return render_template("dashboard.html", rows=rows, schools=schools, by_school=by_school,
                                by_direction=by_direction, school_profiles=school_profiles,
-                               total_score=sum(score(r["level"], r["result"]) for r in rows))
+                               total_score=sum(score(r["level"], r["result"]) for r in rows),
+                               chart_data=chart_data)
 
     @app.get("/achievements")
     @demo_or_login_required
@@ -854,10 +874,14 @@ def create_app(test_config=None):
 
     @app.errorhandler(403)
     def forbidden(_error): return render_template("error.html", code=403, message="Недостаточно прав"), 403
+    @app.errorhandler(400)
+    def bad_request(_error): return render_template("error.html", code=400, message="Некорректный запрос"), 400
     @app.errorhandler(404)
     def not_found(_error): return render_template("error.html", code=404, message="Страница не найдена"), 404
     @app.errorhandler(413)
     def too_large(_error): return render_template("error.html", code=413, message="Файл слишком большой (максимум 16 МБ)"), 413
+    @app.errorhandler(500)
+    def server_error(_error): return render_template("error.html", code=500, message="Сервис временно недоступен"), 500
 
     app.get_db = get_db
     return app

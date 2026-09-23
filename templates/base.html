@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('rd-theme')||((matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light')}catch(e){}</script>
   <title>{% block title %}Рейтинг достижений{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -9,19 +11,20 @@
 {% if g.user or public_demo %}
 <header class="topbar">
   <a class="brand" href="{{ url_for('dashboard') }}"><span>РД</span> Рейтинг достижений</a>
-  <button class="menu-button" type="button" aria-label="Меню" onclick="document.querySelector('.nav').classList.toggle('open')">☰</button>
-  <nav class="nav">
-    <a href="{{ url_for('dashboard') }}">Обзор</a><a href="{{ url_for('achievements') }}">Достижения</a>
-    <a href="{{ url_for('children') }}">Дети</a><a href="{{ url_for('mentors') }}">Педагоги</a>{% if g.user %}<a href="{{ url_for('opportunities') }}">Возможности</a>{% endif %}
-    {% if g.user and g.user.role == 'admin' %}<a href="{{ url_for('child_accounts') }}">Кабинеты</a><a href="{{ url_for('users') }}">Пользователи</a><a href="{{ url_for('audit_log') }}">Аудит</a>{% endif %}
+  <button class="menu-button" type="button" data-menu-toggle aria-label="Открыть меню" aria-expanded="false" aria-controls="main-navigation">☰</button>
+  <nav class="nav" id="main-navigation" aria-label="Основная навигация">
+    <a class="{% if request.endpoint == 'dashboard' %}active{% endif %}" {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %} href="{{ url_for('dashboard') }}">Обзор</a><a class="{% if request.endpoint in ['achievements','achievement_new','achievement_detail','achievement_edit'] %}active{% endif %}" {% if request.endpoint in ['achievements','achievement_new','achievement_detail','achievement_edit'] %}aria-current="page"{% endif %} href="{{ url_for('achievements') }}">Достижения</a>
+    <a class="{% if request.endpoint in ['children','child_detail'] %}active{% endif %}" {% if request.endpoint in ['children','child_detail'] %}aria-current="page"{% endif %} href="{{ url_for('children') }}">Дети</a><a class="{% if request.endpoint in ['mentors','mentor_detail'] %}active{% endif %}" {% if request.endpoint in ['mentors','mentor_detail'] %}aria-current="page"{% endif %} href="{{ url_for('mentors') }}">Педагоги</a>{% if g.user %}<a class="{% if request.endpoint in ['opportunities','opportunity_new','opportunity_detail','opportunity_edit'] %}active{% endif %}" {% if request.endpoint in ['opportunities','opportunity_new','opportunity_detail','opportunity_edit'] %}aria-current="page"{% endif %} href="{{ url_for('opportunities') }}">Возможности</a>{% endif %}
+    {% if g.user and g.user.role == 'admin' %}<a class="{% if request.endpoint == 'child_accounts' %}active{% endif %}" href="{{ url_for('child_accounts') }}">Кабинеты</a><a class="{% if request.endpoint == 'users' %}active{% endif %}" href="{{ url_for('users') }}">Пользователи</a><a class="{% if request.endpoint == 'audit_log' %}active{% endif %}" href="{{ url_for('audit_log') }}">Аудит</a>{% endif %}
   </nav>
+  <button class="theme-button" type="button" data-theme-toggle aria-label="Переключить тему" aria-pressed="false"><span aria-hidden="true">◐</span></button>
   {% if g.user %}<div class="account"><span>{{ g.user.username }} · {{ ROLES[g.user.role] }}</span><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="link-button">Выйти</button></form></div>
   {% else %}<div class="account"><span>Демо-режим</span><a class="link-button" href="{{ url_for('login') }}">Войти</a></div>{% endif %}
 </header>
 {% endif %}
 <main class="container {% if not g.user and not public_demo %}login-wrap{% endif %}">
-  {% if public_demo %}<div class="flash success">Публичный демо-режим: показаны только тестовые данные, изменение записей отключено.</div>{% endif %}
-  {% for category, message in get_flashed_messages(with_categories=true) %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% if public_demo and request.endpoint not in ['login'] %}<div class="flash success" role="status">Публичный демо-режим: показаны только тестовые данные, изменение записей отключено.<button class="flash-close" type="button" aria-label="Закрыть уведомление">×</button></div>{% endif %}
+  <section class="toast-region" aria-live="polite" aria-atomic="true">{% for category, message in get_flashed_messages(with_categories=true) %}<div class="flash {{ category }}" role="status">{{ message }}<button class="flash-close" type="button" aria-label="Закрыть уведомление">×</button></div>{% endfor %}</section>
   {% block content %}{% endblock %}
 </main>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
