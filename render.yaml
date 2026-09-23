@@ -2,6 +2,7 @@ services:
   - type: web
     name: bank-dannyh-odarennosti
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
@@ -10,10 +11,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_PATH
-        value: /var/data/achievements.db
+        value: /tmp/achievements.db
       - key: UPLOAD_FOLDER
-        value: /var/data/uploads
-    disk:
-      name: app-data
-      mountPath: /var/data
-      sizeGB: 1
+        value: /tmp/uploads
