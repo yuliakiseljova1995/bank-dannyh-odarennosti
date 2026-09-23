@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 620" role="img" aria-labelledby="title desc">
+  <title id="title">Образовательные достижения</title>
+  <desc id="desc">Открытая книга, диплом, кубок, медаль и академическая шапочка</desc>
+  <defs>
+    <linearGradient id="book" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6c8ee0"/><stop offset="1" stop-color="#3157a4"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ffdf70"/><stop offset="1" stop-color="#e5a92d"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#172746" flood-opacity=".2"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M84 168c86-121 306-151 426-16 89 101 62 291-55 365-134 84-345 22-399-118-31-80-20-164 28-231Z" fill="#f8fbff" fill-opacity=".82" stroke="#172746" stroke-opacity=".1"/>
+    <path d="m142 113 8 18 19 7-19 8-8 19-8-19-19-8 19-7 8-18Zm354 71 6 14 15 6-15 6-6 15-6-15-15-6 15-6 6-14Z" fill="#d8ee6d" stroke="#172746" stroke-width="3"/>
+    <circle cx="101" cy="304" r="12" fill="#ef816d" stroke="#172746" stroke-width="4"/>
+    <circle cx="526" cy="356" r="9" fill="#6c8ee0" stroke="#172746" stroke-width="4"/>
+
+    <g filter="url(#shadow)">
+      <path d="M126 413h369l42 44-48 39H117l-39-41 48-42Z" fill="#172746" stroke="#172746" stroke-width="6"/>
+      <path d="M116 365h354l36 48-31 36H126l-42-36 32-48Z" fill="#ef816d" stroke="#172746" stroke-width="6"/>
+      <path d="M136 315h347l29 50-42 35H116l-31-38 51-47Z" fill="url(#book)" stroke="#172746" stroke-width="6"/>
+      <path d="M96 361h375M122 411h353M117 449h372" stroke="#fff" stroke-opacity=".72" stroke-width="5"/>
+      <path d="M286 315v85M276 365h20" stroke="#172746" stroke-width="5"/>
+    </g>
+
+    <g filter="url(#shadow)">
+      <path d="M178 177h196v150H178z" fill="#fff" stroke="#172746" stroke-width="7"/>
+      <path d="M194 193h164v118H194z" stroke="#d8ee6d" stroke-width="5"/>
+      <path d="M225 224h102M225 246h80M225 268h58" stroke="#93a3bc" stroke-width="7"/>
+      <circle cx="326" cy="279" r="20" fill="#ef816d" stroke="#172746" stroke-width="5"/>
+      <path d="m315 294-8 38 19-11 18 11-7-39" fill="#ef816d" stroke="#172746" stroke-width="5"/>
+    </g>
+
+    <g filter="url(#shadow)">
+      <path d="M400 196h102v44c0 50-22 81-51 81s-51-31-51-81v-44Z" fill="url(#gold)" stroke="#172746" stroke-width="7"/>
+      <path d="M400 212h-29v23c0 27 16 43 42 43M502 212h29v23c0 27-16 43-42 43" stroke="#172746" stroke-width="7"/>
+      <path d="M451 321v35m-37 14h74m-59-14h44" stroke="#172746" stroke-width="8"/>
+      <path d="m451 220 8 17 19 3-14 13 3 19-16-9-17 9 4-19-14-13 19-3 8-17Z" fill="#fff7cf" stroke="#172746" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(192 84) rotate(-8)" filter="url(#shadow)">
+      <path d="m0 48 82-42 83 42-83 42L0 48Z" fill="#172746" stroke="#172746" stroke-width="6"/>
+      <path d="M34 66v42c30 23 65 23 96 0V66" fill="#3157a4" stroke="#172746" stroke-width="6"/>
+      <path d="M165 49v52" stroke="#172746" stroke-width="6"/>
+      <circle cx="165" cy="105" r="8" fill="#d8ee6d" stroke="#172746" stroke-width="4"/>
+    </g>
+  </g>
+</svg>
