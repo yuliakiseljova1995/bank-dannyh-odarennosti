@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Вход · Банк достижений{% endblock %}
+{% block content %}
+<section class="unified-login">
+  <div class="unified-intro">
+    <div class="unified-brand"><span>БД</span> Банк достижений</div>
+    <p class="eyebrow">Один сервис · два профиля</p>
+    <h1>Достижения, возможности и новые победы</h1>
+    <p>Организаторы ведут единый реестр и направляют приглашения. Дети следят за своими успехами и выбирают новые мероприятия.</p>
+    <div class="profile-preview">
+      <article><b>Организатор</b><span>Реестры, аналитика, конкурсы и приглашения</span></article>
+      <article><b>Ребёнок</b><span>Личные достижения, рейтинг и приглашения</span></article>
+    </div>
+  </div>
+  <form method="post" class="unified-login-card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <p class="eyebrow">Авторизация</p>
+    <h2>Выберите профиль</h2>
+    <div class="profile-switch" role="radiogroup" aria-label="Тип профиля">
+      <label>
+        <input type="radio" name="profile" value="organizer" {% if selected_profile != 'child' %}checked{% endif %}>
+        <span><b>Организатор</b><small>Администратор или сотрудник</small></span>
+      </label>
+      <label>
+        <input type="radio" name="profile" value="child" {% if selected_profile == 'child' %}checked{% endif %}>
+        <span><b>Ребёнок</b><small>Личный кабинет участника</small></span>
+      </label>
+    </div>
+    <label class="login-field">Логин<input name="username" autocomplete="username" required autofocus></label>
+    <label class="login-field">Пароль<input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="button primary unified-submit">Войти в систему</button>
+    <p class="login-help">Логин и пароль выдаёт администратор образовательной организации.</p>
+  </form>
+</section>
+{% endblock %}

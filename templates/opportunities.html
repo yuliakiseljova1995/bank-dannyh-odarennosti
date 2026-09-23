@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}Возможности{% endblock %}{% block content %}
+<div class="page-head"><div><p class="eyebrow">Конкурсы и события</p><h1>Возможности</h1></div>{% if g.user.role in ['admin','editor'] %}<a class="button primary" href="{{ url_for('opportunity_new') }}">+ Добавить</a>{% endif %}</div>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Название</th><th>Направление</th><th>Срок подачи</th><th>Формат</th><th>Приглашено</th><th>Интересно</th><th>Статус</th></tr></thead><tbody>
+{% for item in rows %}<tr><td><a href="{{ url_for('opportunity_detail',opportunity_id=item.id) }}"><b>{{ item.title }}</b></a><small>{{ item.organizer }} · {{ EVENT_TYPES[item.event_type] }}</small></td><td><span class="tag direction-{{ item.direction }}">{{ DIRECTIONS[item.direction] }}</span><small>{{ LEVELS[item.level][0] }}</small></td><td>{{ item.application_deadline }}<small>Событие: {{ item.event_date }}</small></td><td>{{ FORMATS[item.format] }}</td><td><strong>{{ item.invite_count }}</strong></td><td><strong>{{ item.interested_count or 0 }}</strong></td><td>{% if item.active %}<span class="status active">Активно</span>{% else %}<span class="status">Неактивно</span>{% endif %}</td></tr>
+{% else %}<tr><td colspan="7" class="empty">Возможностей пока нет.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

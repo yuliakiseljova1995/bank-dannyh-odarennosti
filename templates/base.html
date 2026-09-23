@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Рейтинг достижений{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% if g.user %}
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}"><span>РД</span> Рейтинг достижений</a>
+  <button class="menu-button" type="button" aria-label="Меню" onclick="document.querySelector('.nav').classList.toggle('open')">☰</button>
+  <nav class="nav">
+    <a href="{{ url_for('dashboard') }}">Обзор</a><a href="{{ url_for('achievements') }}">Достижения</a>
+    <a href="{{ url_for('children') }}">Дети</a><a href="{{ url_for('mentors') }}">Педагоги</a><a href="{{ url_for('opportunities') }}">Возможности</a>
+    {% if g.user.role == 'admin' %}<a href="{{ url_for('child_accounts') }}">Кабинеты</a><a href="{{ url_for('users') }}">Пользователи</a><a href="{{ url_for('audit_log') }}">Аудит</a>{% endif %}
+  </nav>
+  <div class="account"><span>{{ g.user.username }} · {{ ROLES[g.user.role] }}</span><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="link-button">Выйти</button></form></div>
+</header>
+{% endif %}
+<main class="container {% if not g.user %}login-wrap{% endif %}">
+  {% for category, message in get_flashed_messages(with_categories=true) %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>

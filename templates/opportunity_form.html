@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% block title %}{% if item %}Редактирование{% else %}Новая возможность{% endif %}{% endblock %}{% block content %}
+<div class="page-head"><div><p class="eyebrow">Возможности</p><h1>{% if item %}Редактирование{% else %}Новая возможность{% endif %}</h1></div><a class="button" href="{{ url_for('opportunities') }}">К списку</a></div>
+<form method="post" class="form-card"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="form-grid">
+  <label class="span-2">Название<input name="title" value="{{ request.form.get('title',item.title if item else '') }}" required></label>
+  <label>Направление<select name="direction" required><option value="">Выберите</option>{% for key,label in DIRECTIONS.items() %}<option value="{{ key }}" {% if request.form.get('direction',item.direction if item else '')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label>Уровень<select name="level" required>{% for key,value in LEVELS.items() %}<option value="{{ key }}" {% if request.form.get('level',item.level if item else '')==key %}selected{% endif %}>{{ value[0] }}</option>{% endfor %}</select></label>
+  <label>Тип события<select name="event_type" required>{% for key,label in EVENT_TYPES.items() %}<option value="{{ key }}" {% if request.form.get('event_type',item.event_type if item else '')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label>Формат<select name="format" required>{% for key,label in FORMATS.items() %}<option value="{{ key }}" {% if request.form.get('format',item.format if item else '')==key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <label class="span-2">Организатор<input name="organizer" value="{{ request.form.get('organizer',item.organizer if item else '') }}" required></label>
+  <label>Дата события<input type="date" name="event_date" value="{{ request.form.get('event_date',item.event_date if item else '') }}" required></label>
+  <label>Срок подачи заявки<input type="date" name="application_deadline" value="{{ request.form.get('application_deadline',item.application_deadline if item else '') }}" required></label>
+  <label class="span-2">Внешняя ссылка<input type="url" name="external_url" value="{{ request.form.get('external_url',item.external_url if item and item.external_url else '') }}" placeholder="https://..."></label>
+  <label class="span-2">Описание<textarea name="description" rows="6" required>{{ request.form.get('description',item.description if item else '') }}</textarea></label>
+  <label class="check span-2"><input type="checkbox" name="active" {% if request.form.get('active') or (not request.form and (not item or item.active)) %}checked{% endif %}> Активная возможность</label>
+</div><div class="actions form-actions"><button class="button primary">Сохранить</button></div></form>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}{% block title %}Личные кабинеты детей{% endblock %}{% block content %}
+<div class="page-head"><div><p class="eyebrow">Администрирование</p><h1>Личные кабинеты детей</h1><p class="muted">Привязка выполняется по точному ФИО и организации.</p></div></div>
+<div class="grid-2 admin-accounts">
+  <section class="panel"><h2>Новый кабинет</h2><form method="post" class="stack"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Логин<input name="username" minlength="3" required autocomplete="off"></label>
+    <label>Временный пароль<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+    <label>ФИО ребёнка<input name="child_name" list="child-names" required></label>
+    <label>Организация<input name="school" list="schools" required></label>
+    <button class="button primary">Создать кабинет</button>
+  </form></section>
+  <section class="panel"><h2>Учётные записи</h2>{% for account in accounts %}
+    <form method="post" action="{{ url_for('child_account_update',account_id=account.id) }}" class="account-card stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="section-head"><b>{{ account.child_name }}</b><span class="tag">{{ account.invite_count }} приглаш.</span></div>
+      <label>Логин<input name="username" value="{{ account.username }}" minlength="3" required></label>
+      <label>ФИО<input name="child_name" value="{{ account.child_name }}" required></label>
+      <label>Организация<input name="school" value="{{ account.school }}" required></label>
+      <label>Сбросить пароль<input type="password" name="password" minlength="8" placeholder="Оставьте пустым без изменений" autocomplete="new-password"></label>
+      <div class="actions"><label class="check"><input type="checkbox" name="active" {% if account.active %}checked{% endif %}> Активен</label><button class="button small">Сохранить</button></div>
+    </form>{% else %}<p class="empty">Кабинетов пока нет.</p>{% endfor %}</section>
+</div>
+<datalist id="child-names">{% for identity in identities %}<option value="{{ identity.child_name }}">{% endfor %}</datalist>
+<datalist id="schools">{% for identity in identities %}<option value="{{ identity.school }}">{% endfor %}</datalist>
+{% endblock %}
